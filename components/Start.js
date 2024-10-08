@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ImageBackground, StyleSheet, View, Text, Button, TextInput, TouchableOpacity } from 'react-native';
+import { ImageBackground, StyleSheet, View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import bkgImage from '../assets/bkgImage.png';
+import txtboxIcon from '../assets/txtboxIcon.png'
 
 
 
@@ -18,37 +19,65 @@ const Start = ({ navigation }) => {
             <Text style={styles.title}>Chat</Text>
           
             <View style={styles.inputContainer}>
-              <TextInput
-                 style={styles.textInput}
-                 value={name}
-                 onChangeText={setName}
-                 placeholder='your name'
-               />
+              <View style={styles.textbox}>
+                <Image
+                  source={txtboxIcon}
+                  style={styles.icon}
+                />
+                <TextInput
+                   style={styles.textInput}
+                   value={name}
+                   onChangeText={setName}
+                   placeholder='your name'
+                />
+               </View>
 
                <Text style={styles.bkgChoiceTxt}>choose background color:</Text>
                <View style={styles.bkgChoiceContainer}>
                
                <TouchableOpacity
-                 style={[styles.bkgChoice, { backgroundColor: '#090C08'}, // black
-                   bkgColor === '#090C08' && styles.selected]} //highlight selected
-                 onPress={() => handleColorChange('#090C08')}
-                 
-                />
-               <TouchableOpacity 
-                 style={[styles.bkgChoice, { backgroundColor: '#474056'}, // grey
-                   bkgColor === '#474056' && styles.selected ]} //highlight selected
-                 onPress={() => handleColorChange('#474056')}
-                />
-               <TouchableOpacity 
-                 style={[styles.bkgChoice, { backgroundColor: '#8A95A5'}, // blue
-                    bkgColor === '#8A95A5' && styles.selected]} //highlight selected
-                 onPress={() => handleColorChange('#8A95A5')}
-                />
-               <TouchableOpacity 
-                 style={[styles.bkgChoice, { backgroundColor: '#B9C6AE'}, // green
-                    bkgColor === '#B9C6AE' && styles.selected]} //highlight selected
-                 onPress={() => handleColorChange('#B9C6AE')}
-                />
+                 style={[styles.bkgChoiceOuter, bkgColor === '#090C08' && styles.selectedOuter]} //highlight selected
+                 onPress={() => handleColorChange('#090C08')} 
+                >
+                  <View
+                      style={[styles.bkgChoiceInner, { backgroundColor: '#090c08'}, // black
+                        bkgColor === '#090C08' && styles.selectedInner]}
+                    > 
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                 style={[styles.bkgChoiceOuter, bkgColor === '#474056' && styles.selectedOuter]} //highlight selected
+                 onPress={() => handleColorChange('#474056')} 
+                >
+                  <View
+                      style={[styles.bkgChoiceInner, { backgroundColor: '#474056'}, // grey
+                        bkgColor === '#474056' && styles.selectedInner]}
+                    > 
+                  </View>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                 style={[styles.bkgChoiceOuter, bkgColor === '#8A95A5' && styles.selectedOuter]} //highlight selected
+                 onPress={() => handleColorChange('#8A95A5')} 
+                >
+                  <View
+                      style={[styles.bkgChoiceInner, { backgroundColor: '#8A95A5'}, // blue
+                        bkgColor === '#8A95A5' && styles.selectedInner]}
+                    > 
+                  </View>
+                </TouchableOpacity>
+
+               <TouchableOpacity
+                 style={[styles.bkgChoiceOuter, bkgColor === '#B9C6AE' && styles.selectedOuter]} //highlight selected
+                 onPress={() => handleColorChange('#B9C6AE')} 
+                >
+                  <View
+                      style={[styles.bkgChoiceInner, { backgroundColor: '#B9C6AE'}, // green
+                        bkgColor === '#B9C6AE' && styles.selectedInner]}
+                    > 
+                  </View>
+                </TouchableOpacity>
                </View>
                <TouchableOpacity
                  style={styles.chatBtn}
@@ -85,17 +114,28 @@ const styles = StyleSheet.create({
        alignItems: 'center',
        marginBottom: 20, 
     },
-    textInput: {
-        width: "88%",
-        padding: 15,
+    textbox: {
+        flexDirection: 'row',
+        alignItems: 'center',
         borderWidth: 1,
+        width: "88%",
+        padding: 10,
         marginTop: 15,
         marginBottom: 40,
+        borderColor: '#ccc',
+        borderRadius: 5,
+    },
+    textInput: {
+        flex: 1,
         fontSize: 16,
         fontWeight: '600',
         color: '#757083',
         opacity: 0.5,
-
+    },
+    icon: {
+        width: 20,
+        height: 20,
+        marginRight: 10,
     },
     title: {
         fontSize: 45,
@@ -114,6 +154,30 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 25,
         marginBottom: 20,
+    }, 
+    bkgChoiceOuter: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    selectedOuter: {
+        borerWidth: 10,
+        borderColor: '#757083',
+        padding: 5,
+    },
+    bkgChoiceInner: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 3,
+        borderColor: '#FFFFFF'
+    },
+    selectedInner: {
+        borderWidth: 4,
+        borderColor: '#FFFFFF'
     },
     bkgChoiceTxt: {
         fontSize: 16,
@@ -134,17 +198,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginTop: 5
     },
-    selected: {
-        borderWidth: 5,
-        borderColor: '#FFFFFF',
-        padding: 2,
-        borderRadius: 25,
-        overflow: 'hidden',
-        shadowColor: '#757083',
-        shadowRadius: 10,
-        shadowOpacity: 1,
-        shadowOffset: { width: 0, height: 0 },
-    }
 });
 
 export default Start;
