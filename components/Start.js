@@ -36,18 +36,24 @@ const Start = ({ navigation }) => {
                <View style={styles.bkgChoiceContainer}>
                
                <TouchableOpacity
-                 style={[styles.bkgChoiceOuter, bkgColor === '#090C08' && styles.selectedOuter]} //highlight selected
+                 style={[
+                    styles.bkgChoiceOuter, 
+                    bkgColor === '#090C08' && { borderColor: '#090C08'}, // border color matches bkg color
+                    bkgColor === '#090C08' && styles.selectedOuter]} //highlight selected
                  onPress={() => handleColorChange('#090C08')} 
                 >
                   <View
-                      style={[styles.bkgChoiceInner, { backgroundColor: '#090c08'}, // black
+                      style={[styles.bkgChoiceInner, { backgroundColor: '#090C08'}, // black
                         bkgColor === '#090C08' && styles.selectedInner]}
                     > 
                   </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                 style={[styles.bkgChoiceOuter, bkgColor === '#474056' && styles.selectedOuter]} //highlight selected
+                 style={[
+                    styles.bkgChoiceOuter, 
+                    bkgColor === '#474056' && { borderColor: '#474056'},
+                    bkgColor === '#474056' && styles.selectedOuter]} //highlight selected
                  onPress={() => handleColorChange('#474056')} 
                 >
                   <View
@@ -58,7 +64,10 @@ const Start = ({ navigation }) => {
                 </TouchableOpacity>
                 
                 <TouchableOpacity
-                 style={[styles.bkgChoiceOuter, bkgColor === '#8A95A5' && styles.selectedOuter]} //highlight selected
+                 style={[
+                    styles.bkgChoiceOuter, 
+                    bkgColor === '#8A95A5' && { borderColor: '#8A95A5'},
+                    bkgColor === '#8A95A5' && styles.selectedOuter]}  //highlight selected
                  onPress={() => handleColorChange('#8A95A5')} 
                 >
                   <View
@@ -69,7 +78,10 @@ const Start = ({ navigation }) => {
                 </TouchableOpacity>
 
                <TouchableOpacity
-                 style={[styles.bkgChoiceOuter, bkgColor === '#B9C6AE' && styles.selectedOuter]} //highlight selected
+                 style={[
+                    styles.bkgChoiceOuter, 
+                    bkgColor === '#B9C6AE' && { borderColor: '#B9C6AE'},
+                    bkgColor === '#B9C6AE' && styles.selectedOuter]}  //highlight selected
                  onPress={() => handleColorChange('#B9C6AE')} 
                 >
                   <View
@@ -158,26 +170,21 @@ const styles = StyleSheet.create({
     bkgChoiceOuter: {
         width: 50,
         height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
+        borderRadius: "100%",
         marginBottom: 20,
     },
     selectedOuter: {
-        borerWidth: 10,
-        borderColor: '#757083',
-        padding: 5,
+        borderWidth: 2,
+        padding: 2,
     },
     bkgChoiceInner: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        borderWidth: 3,
-        borderColor: '#FFFFFF'
+        width: 50,
+        height: 50,
+        borderRadius: "100%",
     },
     selectedInner: {
-        borderWidth: 4,
-        borderColor: '#FFFFFF'
+        width: 42,
+        height: 42,
     },
     bkgChoiceTxt: {
         fontSize: 16,
