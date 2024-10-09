@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     bkgChoiceOuter: {
         width: 50,
         height: 50,
-        borderRadius: "100%",
+        borderRadius: 25, //'100%'
         marginBottom: 20,
     },
     selectedOuter: {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     bkgChoiceInner: {
         width: 50,
         height: 50,
-        borderRadius: "100%",
+        borderRadius: 25, //'100%'
     },
     selectedInner: {
         width: 42,
