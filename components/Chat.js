@@ -1,38 +1,43 @@
 import { useState, useEffect } from 'react';
 import { Bubble, GiftedChat, Time } from 'react-native-gifted-chat';
 import { StyleSheet, View, Text, Platform, KeyboardAvoidingView } from 'react-native';
+import { collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
 
-const Chat = ({ route, navigation }) => {
+const Chat = ({ route, navigation, db }) => {
     const [messages, setMessages] = useState([]);
-    const { name, backgroundColor } = route.params;
-    const onSend = (newMessages) => {
-        setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages))
-    }
+    const { name, userID, backgroundColor } = route.params ? route.params : { name: 'User', userID: '', backgroundColor: '#FFFFFF' };
+    const onSend = async (newMessages) => {
+        addDoc(collection(db, 'messages'), newMessages[0]);
+    };
+        
 
     useEffect(() => {
         navigation.setOptions({ title: name });
     }, []);
 
     useEffect(() => {
-        setMessages([
-            {
-                _id: 1,
-                text: 'hello developer',
-                createdAt: new Date(),
-                user: {
-                    _id: 2,
-                    name: "React Native",
-                    avatar: "https://placeimg.com/140/140/any",
-                },
-            },
-            {
-                _id: 2,
-                text: 'you have entered the chat', // system message 
-                createdAt: new Date(),
-                system: true,
-            },
-        ]);
-    }, []);
+        const messagesQuery = query(
+            collection(db, 'messages'),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+            const messagesList = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    _id: doc.id,
+                    text: data.text,
+                    createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+                    user: data.user,
+                };
+
+            });
+            setMessages(messagesList);
+        });
+
+        return unsubscribe;
+
+    }, [db]);
 
     const renderBubble = (props) => {
 
@@ -48,7 +53,7 @@ const Chat = ({ route, navigation }) => {
         }else if (backgroundColor === '#8A95A5') { // purple-grey bkg
             rightBubbleColor = '#FDF6E3';
             leftBubbleColor = '#D0E6EB';
-        }else if (backgroundColor === '##B9C6AE') { // purple-grey bkg
+        }else if (backgroundColor === '#B9C6AE') { // purple-grey bkg
             rightBubbleColor = '#5A5A5A';
             leftBubbleColor = '#EFEFEF';
         }
@@ -94,15 +99,18 @@ const Chat = ({ route, navigation }) => {
 
     return (
         <View style={[styles.container, {backgroundColor: backgroundColor}]}>
+         
             <GiftedChat
               messages={messages}
               renderBubble={renderBubble}
               renderTime={renderTime}
               onSend={messages => onSend(messages)}
               user={{
-                _id: 1
+                _id: userID, // pass userid
+                name: name, //pass user name
               }}
             />
+            
             { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
             { Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" />: null }
         </View>
@@ -114,7 +122,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         paddingBottom: 10
-    }
+    },
+    noMessagesText: {
+        fontSize: 16,
+        color: '#808080',
+        textAlign: 'center',
+        marginTop: 20,
+    },
 });
 
 export default Chat;

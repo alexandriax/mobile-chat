@@ -1,13 +1,29 @@
 import { useState } from 'react';
-import { ImageBackground, StyleSheet, View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import { ImageBackground, StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import bkgImage from '../assets/bkgImage.png';
-import txtboxIcon from '../assets/txtboxIcon.png'
+import txtboxIcon from '../assets/txtboxIcon.png';
+import { getAuth, signInAnonymously,initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-
-const Start = ({ navigation }) => {
+const Start = ({ navigation, app, auth }) => {
+ 
     const [name, setName] = useState('');
     const [bkgColor, setBkgColor] = useState('')
+
+    const signInUser = () => {
+        signInAnonymously(auth)
+          .then((result) => {
+            navigation.navigate("Chat", {
+                userID: result.user.uid,
+                name: name,
+                backgroundColor: bkgColor }); //passes chosen bk color
+            Alert.alert("signed in successfully!");
+          })
+          .catch((error) => {
+            Alert.alert("unable to sign in, try again");
+          })
+    }
 
     const handleColorChange = (color) => {
         setBkgColor(color);
@@ -93,7 +109,7 @@ const Start = ({ navigation }) => {
                </View>
                <TouchableOpacity
                  style={styles.chatBtn}
-                 onPress={() => navigation.navigate('Chat', { name: name, backgroundColor: bkgColor })} // navigates to chat page
+                 onPress={signInUser} // user sign in when button is pressed
                 >
                 <Text style={styles.btnText}>start chatting</Text>
                 </TouchableOpacity>
