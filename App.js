@@ -38,7 +38,7 @@ const App = () => {
       <Stack.Screen
           name="Start"
         >
-          {props => <Start app={app} auth={auth} {...props} />}
+          {props => <Start auth={auth} {...props} />}
         </Stack.Screen>
 
         <Stack.Screen

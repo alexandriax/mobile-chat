@@ -35,7 +35,9 @@ const Chat = ({ route, navigation, db }) => {
             setMessages(messagesList);
         });
 
-        return unsubscribe;
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
 
     }, [db]);
 

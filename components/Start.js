@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ImageBackground, StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { ImageBackground, StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert, Platform, KeyboardAvoidingView } from 'react-native';
 import bkgImage from '../assets/bkgImage.png';
 import txtboxIcon from '../assets/txtboxIcon.png';
 import { getAuth, signInAnonymously,initializeAuth, getReactNativePersistence } from 'firebase/auth';
@@ -31,6 +31,12 @@ const Start = ({ navigation, app, auth }) => {
 
     return (
         <View style={styles.container}>
+          {Platform.OS === "android" ? (
+          <KeyboardAvoidingView behavior="height" />
+           ) : null}
+          {Platform.OS === "ios" ? (
+          <KeyboardAvoidingView behavior="padding" />
+           ) : null}
         <ImageBackground source={bkgImage} resizeMode="cover" style={styles.image}>
             <Text style={styles.title}>Chat</Text>
           
