@@ -7,13 +7,17 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { getAuth, signInAnonymously,initializeAuth, getReactNativePersistence } from 'firebase/auth';
+//import storage & connectivity check
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { useEffect } from 'react';
+import { LogBox, Alert } from 'react-native';
 
 //create the navigator
 const Stack = createNativeStackNavigator();
 
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, disableNetwork, enableNetwork } from 'firebase/firestore';
 
 const App = () => {
   const firebaseConfig = {
@@ -25,11 +29,30 @@ const App = () => {
     appId: "1:378096216136:web:066c8fd27702425963507d"
   };
 
-  const app = initializeApp(firebaseConfig);
+  //auth already initialized error fix attempt (didnt work)
+  let app;  
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
+  }
+
   const db = getFirestore(app);
-  const auth = initializeAuth(app, {
+  const auth = getAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage)
   });
+
+  //check connection status
+  const connectionStatus = useNetInfo();
+
+  useEffect(() => {
+    if(connectionStatus.isConnected === false) {
+      Alert.alert("connection lost!");
+      disableNetwork(db);
+    } else if (connectionStatus.isConnected === true) {
+      enableNetwork(db);
+    }
+  }, [connectionStatus.isConnected]);
 
   return (
     
@@ -44,7 +67,7 @@ const App = () => {
         <Stack.Screen
           name="Chat"
         >
-          {props => <Chat db={db} {...props} />}
+          {props => <Chat isConnected={connectionStatus.isConnected} db={db} {...props} />}
           </Stack.Screen>
 
       </Stack.Navigator>

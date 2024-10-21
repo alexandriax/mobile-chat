@@ -1,14 +1,41 @@
 import { useState, useEffect } from 'react';
-import { Bubble, GiftedChat, Time } from 'react-native-gifted-chat';
+import { Bubble, GiftedChat, Time, InputToolbar } from 'react-native-gifted-chat';
 import { StyleSheet, View, Text, Platform, KeyboardAvoidingView } from 'react-native';
 import { collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Chat = ({ route, navigation, db }) => {
+const Chat = ({ route, navigation, db, isConnected }) => {
     const [messages, setMessages] = useState([]);
     const { name, userID, backgroundColor } = route.params ? route.params : { name: 'User', userID: '', backgroundColor: '#FFFFFF' };
-    const onSend = async (newMessages) => {
-        addDoc(collection(db, 'messages'), newMessages[0]);
+
+    //load messages when offline
+    const loadCachedMessages = async () => {
+        try {
+        const cachedMessages = await AsyncStorage.getItem("chat_messages") 
+        if(cachedMessages !== null) {
+        setMessages(JSON.parse(cachedMessages));
+        }
+    }catch (error) {
+        console.error('error loading messages', error);
+    }
     };
+
+    const cacheMessages = async (messagesToCache) => {
+        try {
+            await AsyncStorage.setItem("chat_messages", JSON.stringify(messagesToCache));
+        } catch (error) {
+            console.error('failed:', error);
+        }
+    };
+
+
+    const onSend = async (newMessages) => {
+        if(isConnected) {
+            await addDoc(collection(db, 'messages'), newMessages[0]);
+        } else {
+          setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages)); 
+        }
+        };
         
 
     useEffect(() => {
@@ -16,12 +43,21 @@ const Chat = ({ route, navigation, db }) => {
     }, []);
 
     useEffect(() => {
+        let unsubscribe;
+
+        if (isConnected) {
+            //unregister current onSnapshot listener to avoid registering multiple listeners when useEffect is executed
+            if (unsubscribe) unsubscribe();
+            unsubscribe = null;
+            
+        
         const messagesQuery = query(
             collection(db, 'messages'),
             orderBy('createdAt', 'desc')
         );
 
-        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+
+        unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
             const messagesList = snapshot.docs.map((doc) => {
                 const data = doc.data();
                 return {
@@ -32,14 +68,28 @@ const Chat = ({ route, navigation, db }) => {
                 };
 
             });
+            cacheMessages(messagesList);
             setMessages(messagesList);
         });
+      } else {
+        loadCachedMessages();
+      }
+
+    
 
         return () => {
             if (unsubscribe) unsubscribe();
         };
 
-    }, [db]);
+    }, [isConnected, db]);
+
+    const renderInputToolbar = (props) => {
+        if(isConnected) {
+            return <InputToolbar {...props} />;
+
+        }
+       return null;
+    };
 
     const renderBubble = (props) => {
 
@@ -101,6 +151,10 @@ const Chat = ({ route, navigation, db }) => {
 
     return (
         <View style={[styles.container, {backgroundColor: backgroundColor}]}>
+
+          {!isConnected && (
+            <Text style={styles.connectionLost}>connection lost!</Text>
+          )}
          
             <GiftedChat
               messages={messages}
@@ -111,13 +165,14 @@ const Chat = ({ route, navigation, db }) => {
                 _id: userID, // pass userid
                 name: name, //pass user name
               }}
+              renderInputToolbar={renderInputToolbar}
             />
             
             { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
             { Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" />: null }
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -130,6 +185,12 @@ const styles = StyleSheet.create({
         color: '#808080',
         textAlign: 'center',
         marginTop: 20,
+    },
+    connectionLost: {
+        fontSize: 16,
+        color: '#802d38',
+        textAlign: 'center',
+        marginVertical: 10,
     },
 });
 
