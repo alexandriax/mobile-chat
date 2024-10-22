@@ -104,24 +104,7 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
     const renderInputToolbar = (props) => {
         if(isConnected) {
             return (
-                <View style={[ styles.container ]}>
-                    {image && (
-                        <Image
-                            source={{ uri: image }}
-                            style={[styles.image]}
-                        />
-                    )}
-                    {selectedLocation && (
-                        <MapView
-                            region={{latitude: selectedLocation.latitude,
-                              longitude: selectedLocation.longitude,
-                              latitudeDelta: 0.0922,
-                              longitudeDelta: 0.0421,
-                            }}
-                        />
-                    )}
-                    <InputToolbar {...props} />
-                </View>
+              <InputToolbar {...props} />   
             );
 
         }
@@ -190,7 +173,24 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
                     color: '#000000',
                 }
               }}
-            > 
+            >  
+            <View style={[ styles.container ]}>
+                    {image && (
+                        <Image
+                            source={{ uri: image }}
+                            style={[styles.image]}
+                        />
+                    )}
+                    {selectedLocation && (
+                        <MapView
+                            region={{latitude: selectedLocation.latitude,
+                              longitude: selectedLocation.longitude,
+                              latitudeDelta: 0.0922,
+                              longitudeDelta: 0.0421,
+                            }}
+                        />
+                    )}
+                </View>
                 {currentMessage.image ? ( // add image to bubble
                     <View style={{ padding: 10 }}>
                         <Image
