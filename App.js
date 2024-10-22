@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useEffect } from 'react';
 import { LogBox, Alert } from 'react-native';
+import { getStorage } from "firebase/storage";
 
 //create the navigator
 const Stack = createNativeStackNavigator();
@@ -29,7 +30,7 @@ const App = () => {
     appId: "1:378096216136:web:066c8fd27702425963507d"
   };
 
-  //auth already initialized error fix attempt (didnt work)
+  //auth already initialized error fix attempt (didnt work alone, changed to getAuth)
   let app;  
   if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
@@ -38,7 +39,8 @@ const App = () => {
   }
 
   const db = getFirestore(app);
-  const auth = getAuth(app, {
+  const storage = getStorage(app);
+  const auth = getAuth(app, { //initializeAuth changed to getAuth to resolve error
     persistence: getReactNativePersistence(AsyncStorage)
   });
 
@@ -67,7 +69,7 @@ const App = () => {
         <Stack.Screen
           name="Chat"
         >
-          {props => <Chat isConnected={connectionStatus.isConnected} db={db} {...props} />}
+          {props => <Chat isConnected={connectionStatus.isConnected} db={db} storage={storage} {...props} />}
           </Stack.Screen>
 
       </Stack.Navigator>

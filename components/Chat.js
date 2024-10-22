@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Bubble, GiftedChat, Time, InputToolbar } from 'react-native-gifted-chat';
-import { StyleSheet, View, Text, Platform, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, Text, Platform, KeyboardAvoidingView, Image } from 'react-native';
 import { collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomActions from './CustomActions';
+import MapView from 'react-native-maps';
+import { getStorage } from 'firebase/storage';
 
-const Chat = ({ route, navigation, db, isConnected }) => {
+const Chat = ({ route, navigation, db, isConnected, }) => {
     const [messages, setMessages] = useState([]);
     const { name, userID, backgroundColor } = route.params ? route.params : { name: 'User', userID: '', backgroundColor: '#FFFFFF' };
+    const [image, setImage] = useState(null);
+    const [selectedLocation, setSelectedLocation] = useState(null);
 
     //load messages when offline
     const loadCachedMessages = async () => {
@@ -30,17 +35,30 @@ const Chat = ({ route, navigation, db, isConnected }) => {
 
 
     const onSend = async (newMessages) => {
+        
         if(isConnected) {
-            await addDoc(collection(db, 'messages'), newMessages[0]);
+            if(newMessages.length > 0) {
+                const message = newMessages[0];
+                if (image) {
+                    message.image = image;
+                }
+                if (selectedLocation) {
+                    message.location = selectedLocation;
+                }
+                await addDoc(collection(db, 'messages'), message);
+                setImage(null);
+                setSelectedLocation(null);
+            }
         } else {
           setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages)); 
         }
         };
         
 
-    useEffect(() => {
+        useEffect(() => {
         navigation.setOptions({ title: name });
     }, []);
+
 
     useEffect(() => {
         let unsubscribe;
@@ -85,13 +103,56 @@ const Chat = ({ route, navigation, db, isConnected }) => {
 
     const renderInputToolbar = (props) => {
         if(isConnected) {
-            return <InputToolbar {...props} />;
+            return (
+                <View style={[ styles.container ]}>
+                    {image && (
+                        <Image
+                            source={{ uri: image }}
+                            style={[styles.image]}
+                        />
+                    )}
+                    {selectedLocation && (
+                        <MapView
+                            region={{latitude: selectedLocation.latitude,
+                              longitude: selectedLocation.longitude,
+                              latitudeDelta: 0.0922,
+                              longitudeDelta: 0.0421,
+                            }}
+                        />
+                    )}
+                    <InputToolbar {...props} />
+                </View>
+            );
 
         }
        return null;
     };
 
+    const storage = getStorage();
+
+    const renderCustomActions = (props) => {
+        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage} setSelectedLocation={setSelectedLocation} {...props} />;
+    }
+
+    const renderCustomView = (props) => {
+        const { currentMessage } = props;
+        if (currentMessage.location) {
+            return (
+                <MapView
+                    region={{
+                        latitude: currentMessage.location.latitude,
+                        longitude: currentMessage.location.longitude,
+                        latitudeDelta: 0.0922,
+                        longitudeDelta: 0.0421,
+                    }}
+                />
+            );
+        }
+        return null;
+    }
+
     const renderBubble = (props) => {
+        const { currentMessage } = props;
 
         let rightBubbleColor = '#EAEAEA'; // user default
         let leftBubbleColor = '#D0E6EB'; // other default
@@ -129,9 +190,18 @@ const Chat = ({ route, navigation, db, isConnected }) => {
                     color: '#000000',
                 }
               }}
-            />
-        )
-    }
+            > 
+                {currentMessage.image ? ( // add image to bubble
+                    <View style={{ padding: 10 }}>
+                        <Image
+                            source={{ uri: currentMessage.image }}
+                            style={[styles.image]} 
+                        />
+                    </View>
+                ) : null}
+            </Bubble>
+        );
+    };
 
     const renderTime = (props) => {
         return (
@@ -161,13 +231,15 @@ const Chat = ({ route, navigation, db, isConnected }) => {
               renderBubble={renderBubble}
               renderTime={renderTime}
               onSend={messages => onSend(messages)}
+              renderInputToolbar={renderInputToolbar}
+              renderActions={renderCustomActions}
+              renderCustomView={renderCustomView} //map view
               user={{
                 _id: userID, // pass userid
                 name: name, //pass user name
               }}
-              renderInputToolbar={renderInputToolbar}
             />
-            
+
             { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
             { Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" />: null }
         </View>
@@ -192,6 +264,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginVertical: 10,
     },
+    image: {
+        width: 200,
+        height: 200,
+        borderRadius: 10
+    }
 });
 
 export default Chat;
