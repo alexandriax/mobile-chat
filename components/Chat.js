@@ -7,7 +7,7 @@ import CustomActions from './CustomActions';
 import MapView from 'react-native-maps';
 import { getStorage } from 'firebase/storage';
 
-const Chat = ({ route, navigation, db, isConnected, }) => {
+const Chat = ({ route, navigation, db, isConnected, storage }) => {
     const [messages, setMessages] = useState([]);
     const { name, userID, backgroundColor } = route.params ? route.params : { name: 'User', userID: '', backgroundColor: '#FFFFFF' };
     const [image, setImage] = useState(null);
@@ -40,9 +40,11 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
             if(newMessages.length > 0) {
                 const message = newMessages[0];
                 if (image) {
+                    console.log('attaching image', image);
                     message.image = image;
                 }
                 if (selectedLocation) {
+                    console.log('attaching location', selectedLocation);
                     message.location = selectedLocation;
                 }
                 await addDoc(collection(db, 'messages'), message);
@@ -111,8 +113,6 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
        return null;
     };
 
-    const storage = getStorage();
-
     const renderCustomActions = (props) => {
         return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage} setSelectedLocation={setSelectedLocation} {...props} />;
     }
@@ -120,6 +120,7 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
     const renderCustomView = (props) => {
         const { currentMessage } = props;
         if (currentMessage.location) {
+            console.log('looking for location', currentMessage.location);
             return (
                 <MapView
                     region={{
@@ -128,6 +129,7 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
                     }}
+                    style={{ width: 150, height: 100 }}
                 />
             );
         }
@@ -174,7 +176,7 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
                 }
               }}
             >  
-            <View style={[ styles.container ]}>
+             <View style={[ styles.container ]}>
                     {image && (
                         <Image
                             source={{ uri: image }}
@@ -190,7 +192,7 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
                             }}
                         />
                     )}
-                </View>
+                </View> 
                 {currentMessage.image ? ( // add image to bubble
                     <View style={{ padding: 10 }}>
                         <Image
@@ -198,7 +200,9 @@ const Chat = ({ route, navigation, db, isConnected, }) => {
                             style={[styles.image]} 
                         />
                     </View>
-                ) : null}
+                ) : (
+                    <Text>no image available</Text>
+                )}
             </Bubble>
         );
     };

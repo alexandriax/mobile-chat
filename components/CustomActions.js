@@ -15,6 +15,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
         if (permissions?.granted) {
             const location = await Location.getCurrentPositionAsync({});
             if(location) {
+                console.log('location:', location);
                 setSelectedLocation({
                     longitude: location.coords.longitude,
                     latitude: location.coords.latitude,
@@ -42,6 +43,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
         const blob = await response.blob();
         uploadBytes(newUploadRef, blob).then(async (snapshot) => {
             const imageURL = await getDownloadURL(snapshot.ref)
+            console.log('image url', imageURL);
             onSend({ image: imageURL });
         });
     };
