@@ -11,7 +11,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     const [messages, setMessages] = useState([]);
     const { name, userID, backgroundColor } = route.params ? route.params : { name: 'User', userID: '', backgroundColor: '#FFFFFF' };
     const [image, setImage] = useState(null);
-    const [selectedLocation, setSelectedLocation] = useState(null);
+   /* const [selectedLocation, setSelectedLocation] = useState(null); */
 
     //load messages when offline
     const loadCachedMessages = async () => {
@@ -34,22 +34,22 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     };
 
 
-    const onSend = async (newMessages) => {
+    const onSend =  async (newMessages) => {
         
         if(isConnected) {
             if(newMessages.length > 0) {
                 const message = newMessages[0];
-                if (image) {
+                /* if (image) {
                     console.log('attaching image', image);
                     message.image = image;
                 }
                 if (selectedLocation) {
                     console.log('attaching location', selectedLocation);
                     message.location = selectedLocation;
-                }
-                await addDoc(collection(db, 'messages'), message);
+                } */
+               /* await */ addDoc(collection(db, 'messages'), message);
                 setImage(null);
-                setSelectedLocation(null);
+              /*  setSelectedLocation(null); */
             }
         } else {
           setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages)); 
@@ -114,7 +114,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     };
 
     const renderCustomActions = (props) => {
-        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage} setSelectedLocation={setSelectedLocation} {...props} />;
+        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage} /* setSelectedLocation={setSelectedLocation} */ {...props} />;
     }
 
     const renderCustomView = (props) => {
@@ -182,16 +182,17 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
                             source={{ uri: image }}
                             style={[styles.image]}
                         />
-                    )}
-                    {selectedLocation && (
+                    )} 
+                    {/*
+                     {selectedLocation && (
                         <MapView
                             region={{latitude: selectedLocation.latitude,
                               longitude: selectedLocation.longitude,
                               latitudeDelta: 0.0922,
                               longitudeDelta: 0.0421,
-                            }}
+                            }} 
                         />
-                    )}
+                    )} */}
                 </View> 
                 {currentMessage.image ? ( // add image to bubble
                     <View style={{ padding: 10 }}>

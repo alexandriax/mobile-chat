@@ -6,7 +6,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage, setSelectedLocation }) => {
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage,/* setSelectedLocation */}) => {
     const actionSheet = useActionSheet();
 
     
@@ -16,10 +16,10 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
             const location = await Location.getCurrentPositionAsync({});
             if(location) {
                 console.log('location:', location);
-                setSelectedLocation({
+               /* setSelectedLocation({
                     longitude: location.coords.longitude,
                     latitude: location.coords.latitude,
-                });
+                }); */ 
                 onSend({
                     location: {
                         longitude: location.coords.longitude,
