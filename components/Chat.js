@@ -80,6 +80,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
             const messagesList = snapshot.docs.map((doc) => {
                 const data = doc.data();
+                console.log("data", data)
                 return {
                     _id: doc.id,
                     text: data.text,

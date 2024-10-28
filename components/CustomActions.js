@@ -51,9 +51,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
     const pickImage = async () => {
         let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissions?.granted) {
-            let result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.All,
-            });
+            let result = await ImagePicker.launchImageLibraryAsync();
 
             if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
             else Alert.alert('permission to access library denied')
@@ -62,12 +60,10 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
 
     const takePhoto = async () => {
         let permissions = await ImagePicker.requestCameraPermissionsAsync();
-
+    
         if (permissions?.granted) {
-            let result = await ImagePicker.launchCameraAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.All,
-            });
-
+            let result = await ImagePicker.launchCameraAsync();
+            
             if (!result.canceled) {
                 let mediaLibraryPermissions = await MediaLibrary.requestPermissionsAsync();
                 if (mediaLibraryPermissions?.granted) {
@@ -79,6 +75,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
             Alert.alert('permission to access camera denied');
         }
     };
+    
 
     const onActionPress = () => {
         const options = ['choose from library', 'take picture', 'send location', 'cancel'];
