@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 
 const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage,/* setSelectedLocation */}) => {
@@ -41,39 +42,46 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
         const newUploadRef = ref(storage, uniqueRefString);
         const response = await fetch(imageURI);
         const blob = await response.blob();
+
         uploadBytes(newUploadRef, blob).then(async (snapshot) => {
             const imageURL = await getDownloadURL(snapshot.ref)
             console.log('image url', imageURL);
-            onSend({ image: imageURL });
+
+            const messageId = uuidv4();
+
+            onSend({ 
+                _id: messageId,
+                image: imageURL,
+                createdAt: new Date(),
+                text: '',
+                user: { _id: userID },
+                
+             });
         });
-    };
+    }; 
+
+   
 
     const pickImage = async () => {
         let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permissions?.granted) {
-            let result = await ImagePicker.launchImageLibraryAsync();
 
-            if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-            else Alert.alert('permission to access library denied')
+        if(permissions?.granted){
+            let result = await ImagePicker.launchImageLibraryAsync();
+            if(!result.canceled) await uploadAndSendImage(result.assets[0].uri);
+            else Alert.alert("permissions haven't been granted");
         }
+
     };
 
     const takePhoto = async () => {
         let permissions = await ImagePicker.requestCameraPermissionsAsync();
-    
-        if (permissions?.granted) {
+
+        if(permissions?.granted) {
             let result = await ImagePicker.launchCameraAsync();
-            
-            if (!result.canceled) {
-                let mediaLibraryPermissions = await MediaLibrary.requestPermissionsAsync();
-                if (mediaLibraryPermissions?.granted) {
-                    await MediaLibrary.saveToLibraryAsync(result.assets[0].uri);
-                }
-                await uploadAndSendImage(result.assets[0].uri);
-            } 
-        } else {
-            Alert.alert('permission to access camera denied');
+            if(!result.canceled) await uploadAndSendImage(result.assets[0].uri);
+            else Alert.alert("permissions haven't been granted");
         }
+
     };
     
 

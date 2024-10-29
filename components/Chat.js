@@ -34,35 +34,50 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     };
 
 
-    const onSend =  async (newMessages) => {
+    /*const onSend =  async (newMessages) => {
         
         if(isConnected) {
             if(newMessages.length > 0) {
                 const message = newMessages[0];
-                /* if (image) {
+                 if (image) {
                     console.log('attaching image', image);
                     message.image = image;
                 }
                 if (selectedLocation) {
                     console.log('attaching location', selectedLocation);
                     message.location = selectedLocation;
-                } */
-               /* await */ addDoc(collection(db, 'messages'), message);
+                } 
+                await  addDoc(collection(db, 'messages'), message);
                 setImage(null);
-              /*  setSelectedLocation(null); */
+                setSelectedLocation(null); 
             }
         } else {
           setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages)); 
         }
-        };
-        
+        }; 
 
         useEffect(() => {
         navigation.setOptions({ title: name });
-    }, []);
+    }, []); */
+
+    const onSend = (newMessages) => {
+      if(newMessages && newMessages.length > 0) {
+        console.log('sending new message:', newMessages[0]);
+        addDoc(collection(db,'messages'), newMessages[0])
+          .then(() => {
+            console.log("message sent successfully");
+          })
+          .catch((error) => {
+            console.error("failed to send message:", error);
+          });
+
+      } else {
+        console.error("newMessages is undefined", newMessages);
+      }
+    };
 
 
-    useEffect(() => {
+    /* useEffect(() => {
         let unsubscribe;
 
         if (isConnected) {
@@ -102,7 +117,37 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
             if (unsubscribe) unsubscribe();
         };
 
-    }, [isConnected, db]);
+    }, [isConnected, db]); */
+
+    useEffect(() => {
+        let unsubscribe;
+
+        if(isConnected){
+            if(unsubscribe)unsubscribe();
+            unsubscribe = null;
+
+            const messagesQuery = query(collection(db, "messages"), 
+             orderBy('createdAt', 'desc')
+            );
+
+            unsubscribe = onSnapshot(messagesQuery, (docs) => {
+                let newMessages = [];
+                docs.forEach(doc => {
+                    newMessages.push({
+                        id: doc.id,
+                        ...doc.data(),
+                        createdAt: new Date(doc.data().createdAt.toMillis())
+                    })
+                });
+                cacheMessages(newMessages);
+                setMessages(newMessages);
+            });
+        } else loadCachedMessages();
+
+        return() => {
+            if(unsubscribe)unsubscribe();
+        };
+    }, [isConnected]);
 
     const renderInputToolbar = (props) => {
         if(isConnected) {
@@ -114,8 +159,12 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
        return null;
     };
 
+    /*const renderCustomActions = (props) => {
+        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage}  setSelectedLocation={setSelectedLocation}  {...props} />;
+    }*/
+
     const renderCustomActions = (props) => {
-        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage} /* setSelectedLocation={setSelectedLocation} */ {...props} />;
+        return <CustomActions userID={userID} storage={storage} onSend={onSend} {...props}  />;
     }
 
     const renderCustomView = (props) => {
@@ -135,7 +184,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
             );
         }
         return null;
-    }
+    } 
 
     const renderBubble = (props) => {
         const { currentMessage } = props;
@@ -236,7 +285,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
               messages={messages}
               renderBubble={renderBubble}
               renderTime={renderTime}
-              onSend={messages => onSend(messages)}
+              onSend={(messages) => onSend(messages)}
               renderInputToolbar={renderInputToolbar}
               renderActions={renderCustomActions}
               renderCustomView={renderCustomView} //map view
