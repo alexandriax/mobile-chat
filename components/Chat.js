@@ -18,6 +18,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         try {
         const cachedMessages = await AsyncStorage.getItem("chat_messages") 
         if(cachedMessages !== null) {
+            console.log("line21")
         setMessages(JSON.parse(cachedMessages));
         }
     }catch (error) {
@@ -61,9 +62,9 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     }, []); */
 
     const onSend = (newMessages) => {
-      if(newMessages && newMessages.length > 0) {
-        console.log('sending new message:', newMessages[0]);
-        addDoc(collection(db,'messages'), newMessages[0])
+      if(newMessages) {
+        console.log('sending new message:', newMessages);
+        addDoc(collection(db,'messages'), newMessages)
           .then(() => {
             console.log("message sent successfully");
           })
@@ -139,7 +140,9 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
                         createdAt: new Date(doc.data().createdAt.toMillis())
                     })
                 });
+                
                 cacheMessages(newMessages);
+                console.log("line144")
                 setMessages(newMessages);
             });
         } else loadCachedMessages();
