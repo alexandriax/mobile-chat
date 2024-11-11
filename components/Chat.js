@@ -11,7 +11,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     const [messages, setMessages] = useState([]);
     const { name, userID, backgroundColor } = route.params ? route.params : { name: 'User', userID: '', backgroundColor: '#FFFFFF' };
     const [image, setImage] = useState(null);
-   /* const [selectedLocation, setSelectedLocation] = useState(null); */
+    const [selectedLocation, setSelectedLocation] = useState(null); 
 
     //load messages when offline
     const loadCachedMessages = async () => {
@@ -63,10 +63,9 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
 
     const onSend = (newMessages) => {
       if(newMessages) {
-        console.log('sending new message:', newMessages);
         addDoc(collection(db,'messages'), newMessages)
           .then(() => {
-            console.log("message sent successfully");
+            
           })
           .catch((error) => {
             console.error("failed to send message:", error);
@@ -167,12 +166,12 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     }*/
 
     const renderCustomActions = (props) => {
-        return <CustomActions userID={userID} storage={storage} onSend={onSend} {...props}  />;
+        return <CustomActions userID={userID} storage={storage} onSend={onSend} setSelectedLocation={setSelectedLocation}  {...props}  />;
     }
 
     const renderCustomView = (props) => {
         const { currentMessage } = props;
-        if (currentMessage.location) {
+        if (currentMessage.location && currentMessage.location.latitude && currentMessage.location.longitude) {
             console.log('looking for location', currentMessage.location);
             return (
                 <MapView
@@ -236,7 +235,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
                             style={[styles.image]}
                         />
                     )} 
-                    {/*
+                    
                      {selectedLocation && (
                         <MapView
                             region={{latitude: selectedLocation.latitude,
@@ -245,7 +244,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
                               longitudeDelta: 0.0421,
                             }} 
                         />
-                    )} */}
+                    )} 
                 </View> 
                 {currentMessage.image ? ( // add image to bubble
                     <View style={{ padding: 10 }}>

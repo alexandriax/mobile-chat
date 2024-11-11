@@ -22,6 +22,10 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                     latitude: location.coords.latitude,
                 }); */ 
                 onSend({
+                    _id: uuidv4(),
+                    text: '',
+                    createdAt: new Date(),
+                    user: { _id: userID },
                     location: {
                         longitude: location.coords.longitude,
                         latitude: location.coords.latitude,
@@ -110,7 +114,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
     };
 
     return (
-        <TouchableOpacity style={styles.container} accessible={true} accessibilityLabel='more options' accessibilityHint='options for sending images or location' onPress={onActionPress}>
+        <TouchableOpacity style={styles.container} accessible={true} accessibilityLabel='more options' accessibilityRole='button' accessibilityHint='options for sending images or location' onPress={onActionPress}>
           <View style={[styles.wrapper, wrapperStyle]}>
              <Text style={[styles.iconText, iconTextStyle]}>+</Text>
           </View>
