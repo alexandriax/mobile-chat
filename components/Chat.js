@@ -34,33 +34,6 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         }
     };
 
-
-    /*const onSend =  async (newMessages) => {
-        
-        if(isConnected) {
-            if(newMessages.length > 0) {
-                const message = newMessages[0];
-                 if (image) {
-                    console.log('attaching image', image);
-                    message.image = image;
-                }
-                if (selectedLocation) {
-                    console.log('attaching location', selectedLocation);
-                    message.location = selectedLocation;
-                } 
-                await  addDoc(collection(db, 'messages'), message);
-                setImage(null);
-                setSelectedLocation(null); 
-            }
-        } else {
-          setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages)); 
-        }
-        }; 
-
-        useEffect(() => {
-        navigation.setOptions({ title: name });
-    }, []); */
-
     const onSend = (newMessages) => {
       if(newMessages) {
         addDoc(collection(db,'messages'), newMessages)
@@ -75,49 +48,6 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         console.error("newMessages is undefined", newMessages);
       }
     };
-
-
-    /* useEffect(() => {
-        let unsubscribe;
-
-        if (isConnected) {
-            //unregister current onSnapshot listener to avoid registering multiple listeners when useEffect is executed
-            if (unsubscribe) unsubscribe();
-            unsubscribe = null;
-            
-        
-        const messagesQuery = query(
-            collection(db, 'messages'),
-            orderBy('createdAt', 'desc')
-        );
-
-
-        unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-            const messagesList = snapshot.docs.map((doc) => {
-                const data = doc.data();
-                console.log("data", data)
-                return {
-                    _id: doc.id,
-                    text: data.text,
-                    createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
-                    user: data.user,
-                };
-
-            });
-            cacheMessages(messagesList);
-            setMessages(messagesList);
-        });
-      } else {
-        loadCachedMessages();
-      }
-
-    
-
-        return () => {
-            if (unsubscribe) unsubscribe();
-        };
-
-    }, [isConnected, db]); */
 
     useEffect(() => {
         let unsubscribe;
@@ -160,10 +90,6 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         }
        return null;
     };
-
-    /*const renderCustomActions = (props) => {
-        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage}  setSelectedLocation={setSelectedLocation}  {...props} />;
-    }*/
 
     const renderCustomActions = (props) => {
         return <CustomActions userID={userID} storage={storage} onSend={onSend} setSelectedLocation={setSelectedLocation}  {...props}  />;
