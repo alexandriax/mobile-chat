@@ -16,7 +16,6 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
         if (permissions?.granted) {
             const location = await Location.getCurrentPositionAsync({});
             if(location) {
-                console.log('location:', location);
                 onSend({
                     _id: uuidv4(),
                     text: '',
@@ -45,7 +44,6 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
 
         uploadBytes(newUploadRef, blob).then(async (snapshot) => {
             const imageURL = await getDownloadURL(snapshot.ref)
-            console.log('image url', imageURL);
 
             const messageId = uuidv4();
 

@@ -18,7 +18,6 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         try {
         const cachedMessages = await AsyncStorage.getItem("chat_messages") 
         if(cachedMessages !== null) {
-            console.log("line21")
         setMessages(JSON.parse(cachedMessages));
         }
     }catch (error) {
@@ -71,7 +70,6 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
                 });
                 
                 cacheMessages(newMessages);
-                console.log("line144")
                 setMessages(newMessages);
             });
         } else loadCachedMessages();
@@ -98,7 +96,6 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     const renderCustomView = (props) => {
         const { currentMessage } = props;
         if (currentMessage.location && currentMessage.location.latitude && currentMessage.location.longitude) {
-            console.log('looking for location', currentMessage.location);
             return (
                 <MapView
                     region={{
