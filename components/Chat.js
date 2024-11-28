@@ -33,6 +33,25 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         }
     };
 
+   /* old code
+    const onSend = (newMessages) => {
+        if(newMessages && newMessages.length > 0) {
+          console.log('sending new message:', newMessages[0]);
+          addDoc(collection(db,'messages'), newMessages[0])
+            .then(() => {
+              console.log("message sent successfully");
+            })
+            .catch((error) => {
+              console.error("failed to send message:", error);
+            });
+  
+        } else {
+          console.error("newMessages is undefined", newMessages);
+        }
+      }; */
+
+    /* images & location work but not text */
+
     const onSend = (newMessages) => {
       if(newMessages) {
         addDoc(collection(db,'messages'), newMessages)
@@ -46,8 +65,35 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
       } else {
         console.error("newMessages is undefined", newMessages);
       }
-    };
+    };  
 
+/* text fix but location & images break
+const onSend = (newMessages) => {
+    if (newMessages && Array.isArray(newMessages)) {
+      newMessages.forEach((message) => {
+        // Ensure the message has the correct structure
+        const formattedMessage = {
+          ...message,
+          createdAt: message.createdAt.toDate
+            ? message.createdAt
+            : new Date(message.createdAt).toISOString(), // Handle createdAt properly
+          user: message.user || { _id: 'default_id', name: 'Anonymous' }, // Ensure user exists
+        };
+  
+        // Add the message to Firestore
+        addDoc(collection(db, 'messages'), formattedMessage)
+          .then(() => {
+            console.log('Message sent successfully:', formattedMessage);
+          })
+          .catch((error) => {
+            console.error('Failed to send message:', error);
+          });
+      });
+    } else {
+      console.error('newMessages is not an array or is undefined:', newMessages);
+    }
+  }; */
+  
     useEffect(() => {
         let unsubscribe;
 
@@ -59,7 +105,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
              orderBy('createdAt', 'desc')
             );
 
-            unsubscribe = onSnapshot(messagesQuery, (docs) => {
+           unsubscribe = onSnapshot(messagesQuery, (docs) => {
                 let newMessages = [];
                 docs.forEach(doc => {
                     newMessages.push({
@@ -71,7 +117,31 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
                 
                 cacheMessages(newMessages);
                 setMessages(newMessages);
-            });
+            }); 
+            /* text fix 
+            unsubscribe = onSnapshot(messagesQuery, (docs) => {
+                let newMessages = [];
+                docs.forEach(doc => {
+                  const data = doc.data();
+                  // Check if createdAt exists and is a Timestamp
+                  let createdAt;
+                  if (data.createdAt && data.createdAt.toMillis) {
+                    createdAt = new Date(data.createdAt.toMillis());
+                  } else {
+                    console.warn('Missing or invalid createdAt field:', data);
+                    createdAt = new Date(); // Fallback to current date/time
+                  }
+              
+                  newMessages.push({
+                    id: doc.id,
+                    ...data,
+                    createdAt, // Use the resolved createdAt value
+                  });
+                });
+              
+                cacheMessages(newMessages);
+                setMessages(newMessages);
+              }); */
         } else loadCachedMessages();
 
         return() => {
