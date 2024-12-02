@@ -33,24 +33,32 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         }
     };
 
-   /* old code
-    const onSend = (newMessages) => {
-        if(newMessages && newMessages.length > 0) {
-          console.log('sending new message:', newMessages[0]);
-          addDoc(collection(db,'messages'), newMessages[0])
-            .then(() => {
-              console.log("message sent successfully");
-            })
-            .catch((error) => {
-              console.error("failed to send message:", error);
-            });
-  
-        } else {
-          console.error("newMessages is undefined", newMessages);
-        }
-      }; */
 
-    /* images & location work but not text */
+    /*const onSend =  async (newMessages) => {
+        
+        if(isConnected) {
+            if(newMessages.length > 0) {
+                const message = newMessages[0];
+                 if (image) {
+                    console.log('attaching image', image);
+                    message.image = image;
+                }
+                if (selectedLocation) {
+                    console.log('attaching location', selectedLocation);
+                    message.location = selectedLocation;
+                } 
+                await  addDoc(collection(db, 'messages'), message);
+                setImage(null);
+                setSelectedLocation(null); 
+            }
+        } else {
+          setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages)); 
+        }
+        }; 
+
+        useEffect(() => {
+        navigation.setOptions({ title: name });
+    }, []); */
 
     const onSend = (newMessages) => {
       if(newMessages) {
@@ -158,6 +166,10 @@ const onSend = (newMessages) => {
         }
        return null;
     };
+
+    /*const renderCustomActions = (props) => {
+        return <CustomActions storage={storage} userID={userID} onSend={onSend} setImage={setImage}  setSelectedLocation={setSelectedLocation}  {...props} />;
+    }*/
 
     const renderCustomActions = (props) => {
         return <CustomActions userID={userID} storage={storage} onSend={onSend} setSelectedLocation={setSelectedLocation}  {...props}  />;

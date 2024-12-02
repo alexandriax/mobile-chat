@@ -7,7 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage}) => {
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage,/* setSelectedLocation */}) => {
     const actionSheet = useActionSheet();
 
     
@@ -16,6 +16,11 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
         if (permissions?.granted) {
             const location = await Location.getCurrentPositionAsync({});
             if(location) {
+                console.log('location:', location);
+               /* setSelectedLocation({
+                    longitude: location.coords.longitude,
+                    latitude: location.coords.latitude,
+                }); */ 
                 onSend({
                     _id: uuidv4(),
                     text: '',
