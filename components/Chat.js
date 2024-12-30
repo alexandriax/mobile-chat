@@ -83,12 +83,9 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
     }; */
 
     const onSend = async (newMessages = []) => {
-        console.log("hi")
-        console.log(newMessages)
       if (isConnected) {
           for (const newMessage of newMessages) {
               // Attach image and location
-              console.log(selectedLocation)
               const messageToSend = {
                   ...newMessage,
                   createdAt: Timestamp.now(), // Use Firestore Timestamp

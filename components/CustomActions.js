@@ -12,6 +12,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
     const { showActionSheetWithOptions } = useActionSheet();
 
     const uploadAndSendImage = async (imageUri) => {
+        console.log(imageUri)
         try {
             const response = await fetch(imageUri);
             const blob = await response.blob();
@@ -48,22 +49,25 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
     const handleAction = async (index) => {
         switch (index) {
             case 0: // Pick image from library
-                const result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes: ImagePicker.MediaType.Images,
-                });
-                if (!libraryResult.canceled) {
-                    uploadAndSendImage(libraryResult.assets[0].uri);
+                const result = await ImagePicker.launchImageLibraryAsync(
+                    // mediaTypes: ImagePicker.MediaType.Images,
+                );
+                console.log(result)
+                if (!result.canceled) {
+                    uploadAndSendImage(result.assets[0].uri);
                 }
                 break;
 
             case 1: // Take photo
-                const cameraResult = await ImagePicker.launchCameraAsync({
-                    mediaTypes: ImagePicker.MediaType.Images,
-                });
+                const cameraResult = await ImagePicker.launchCameraAsync(
+                    //mediaTypes: ImagePicker.MediaType.Images,
+                );
+                console.log(cameraResult)
                 if (!cameraResult.canceled) {
                     uploadAndSendImage(cameraResult.assets[0].uri);
                 }
                 break;
+
 
             case 2: // Send location
                 let { status } = await Location.requestForegroundPermissionsAsync();
