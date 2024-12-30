@@ -19,6 +19,7 @@ const Stack = createNativeStackNavigator();
 
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, disableNetwork, enableNetwork } from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
 
 const App = () => {
   const firebaseConfig = {

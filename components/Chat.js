@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Bubble, GiftedChat, Time, InputToolbar } from 'react-native-gifted-chat';
 import { StyleSheet, View, Text, Platform, KeyboardAvoidingView, Image } from 'react-native';
-import { collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomActions from './CustomActions';
 import MapView from 'react-native-maps';
 import { getStorage } from 'firebase/storage';
+import { Timestamp } from 'firebase/firestore';
 
 const Chat = ({ route, navigation, db, isConnected, storage }) => {
     const [messages, setMessages] = useState([]);
@@ -60,12 +61,88 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         navigation.setOptions({ title: name });
     }, []); */
 
-    const onSend = (newMessages) => {
+    /*working const onSend = (newMessages) => {
+        if (newMessages && Array.isArray(newMessages)) {
+            newMessages.forEach((message) => {
+                const formattedMessage = {
+                    ...message,
+                    createdAt: Timestamp.now(), // Ensure Timestamp is set
+                };
+    
+                addDoc(collection(db, 'messages'), formattedMessage)
+                    .then(() => console.log('Message sent:', formattedMessage))
+                    .catch((error) => console.error('Error sending message:', error));
+            });
+    
+            // Reset image and location
+            setImage(null);
+            setSelectedLocation(null);
+        } else {
+            console.error('newMessages is undefined or not an array', newMessages);
+        }
+    }; */
+
+    const onSend = async (newMessages = []) => {
+        console.log("hi")
+        console.log(newMessages)
+      if (isConnected) {
+          for (const newMessage of newMessages) {
+              // Attach image and location
+              console.log(selectedLocation)
+              const messageToSend = {
+                  ...newMessage,
+                  createdAt: Timestamp.now(), // Use Firestore Timestamp
+                  image: newMessage.image ? newMessage.image : null,     // Attach image if present
+                  location: newMessage.location ? newMessage.location : null // Attach location if present
+              };
+  
+              try {
+                  // Send the message to Firebase
+                  await addDoc(collection(db, 'messages'), messageToSend);
+                  console.log('Message sent:', messageToSend);
+              } catch (error) {
+                  console.error('Error sending message:', error);
+              }
+              console.log(location)
+          }
+  
+          // Reset image and location
+          setImage(null);
+          setSelectedLocation(null);
+      } else {
+          console.warn('You are offline. Saving message locally.');
+          setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
+      }
+  };
+  
+    
+  
+
+   /* old on send
+   const onSend = (newMessages) => {
       if(newMessages) {
+        /* chatgpt suggestion 
+        newMessages.forEach((message) => {
+          addDoc(collection(db, 'messages'), {
+            ...message,
+            createdAt: Timestamp.now(),
+          })
+          .then(() => console.log('message added:', message))
+          .catch((error) => console.error('error adding messages:', error));
+
+          if (image) {
+            message.image = image;
+          }
+          if (selectedLocation) {
+            message.location = selectedLocation;
+          }
+        }) 
         addDoc(collection(db,'messages'), newMessages)
           .then(() => {
-            
+            setImage(null);  // Clear the image after sending
+            setSelectedLocation(null);  // Clear the location after sending
           })
+          console.log(doc)
           .catch((error) => {
             console.error("failed to send message:", error);
           });
@@ -73,7 +150,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
       } else {
         console.error("newMessages is undefined", newMessages);
       }
-    };  
+    };  */
 
 /* text fix but location & images break
 const onSend = (newMessages) => {
@@ -101,7 +178,75 @@ const onSend = (newMessages) => {
       console.error('newMessages is not an array or is undefined:', newMessages);
     }
   }; */
-  
+  useEffect(() => {
+    let unsubscribe;
+
+    if (isConnected) {
+        if (unsubscribe) unsubscribe();
+        unsubscribe = null;
+
+        const messagesQuery = query(collection(db, 'messages'), orderBy('createdAt', 'desc'));
+
+        unsubscribe = onSnapshot(messagesQuery, (docs) => {
+          let newMessages = [];
+          docs.forEach((doc) => {
+              const data = doc.data();
+              let createdAt;
+      
+              // Safely handle `createdAt`
+              if (data.createdAt && data.createdAt.toMillis) {
+                  createdAt = new Date(data.createdAt.toMillis());
+              } else {
+                  console.warn(`Missing or invalid createdAt for message ${doc.id}:`, data);
+                  createdAt = new Date(); // Fallback to current time
+              }
+      
+              newMessages.push({
+                  id: doc.id,
+                  ...data,
+                  createdAt,
+              });
+          });
+      
+          cacheMessages(newMessages);
+          setMessages(newMessages);
+      });
+      
+    } else {
+        loadCachedMessages();
+    }
+
+    return () => {
+        if (unsubscribe) unsubscribe();
+    };
+}, [isConnected]);
+
+const fixMessages = async () => {
+  try {
+      const messagesSnapshot = await getDocs(collection(db, 'messages'));
+      const updates = messagesSnapshot.docs.map(async (messageDoc) => {
+          const data = messageDoc.data();
+
+          // Check if createdAt is a string and fix it
+          if (typeof data.createdAt === 'string') {
+              console.warn(`Fixing createdAt for message ${messageDoc.id}:`, data);
+              await updateDoc(doc(db, 'messages', messageDoc.id), {
+                  createdAt: Timestamp.fromDate(new Date(data.createdAt)),
+              });
+          }
+      });
+
+      await Promise.all(updates);
+      console.log('Fix completed for all messages!');
+  } catch (error) {
+      console.error('Error fixing messages:', error);
+  }
+};
+
+fixMessages();
+
+
+  /*
     useEffect(() => {
         let unsubscribe;
 
@@ -112,10 +257,12 @@ const onSend = (newMessages) => {
             const messagesQuery = query(collection(db, "messages"), 
              orderBy('createdAt', 'desc')
             );
+            console.log(new Date(doc.data().createdAt.toMillis()));
 
            unsubscribe = onSnapshot(messagesQuery, (docs) => {
                 let newMessages = [];
-                docs.forEach(doc => {
+                docs.forEach((doc) => {
+                  console.log('document data', doc.data());
                     newMessages.push({
                         id: doc.id,
                         ...doc.data(),
@@ -125,7 +272,7 @@ const onSend = (newMessages) => {
                 
                 cacheMessages(newMessages);
                 setMessages(newMessages);
-            }); 
+            }); */
             /* text fix 
             unsubscribe = onSnapshot(messagesQuery, (docs) => {
                 let newMessages = [];
@@ -149,13 +296,13 @@ const onSend = (newMessages) => {
               
                 cacheMessages(newMessages);
                 setMessages(newMessages);
-              }); */
+              }); 
         } else loadCachedMessages();
 
         return() => {
             if(unsubscribe)unsubscribe();
         };
-    }, [isConnected]);
+    }, [isConnected]);*/
 
     const renderInputToolbar = (props) => {
         if(isConnected) {
@@ -193,7 +340,7 @@ const onSend = (newMessages) => {
         return null;
     } 
 
-    const renderBubble = (props) => {
+   /* const renderBubble = (props) => {
         const { currentMessage } = props;
 
         let rightBubbleColor = '#EAEAEA'; // user default
@@ -211,9 +358,74 @@ const onSend = (newMessages) => {
         }else if (backgroundColor === '#B9C6AE') { // purple-grey bkg
             rightBubbleColor = '#5A5A5A';
             leftBubbleColor = '#EFEFEF';
-        }
+        }*/
+            const renderBubble = (props) => {
+              const { currentMessage } = props;
+              let rightBubbleColor = '#EAEAEA'; // user default
+              let leftBubbleColor = '#D0E6EB'; // other default
+      
+              if (backgroundColor === '#090C08') { //black bkg
+                  rightBubbleColor = '#D4EAE2';
+                  leftBubbleColor = '#FFFFFF';
+              } else if (backgroundColor === '#474056') { // purple-grey bkg
+                  rightBubbleColor = '#F0F0F7';
+                  leftBubbleColor = '#F8E8D9';
+              }else if (backgroundColor === '#8A95A5') { // purple-grey bkg
+                  rightBubbleColor = '#FDF6E3';
+                  leftBubbleColor = '#D0E6EB';
+              }else if (backgroundColor === '#B9C6AE') { // purple-grey bkg
+                  rightBubbleColor = '#5A5A5A';
+                  leftBubbleColor = '#EFEFEF';
+              }
+          
+              return (
+                  <Bubble
+                      {...props}
+                      wrapperStyle={{
+                right: {
+                    backgroundColor: rightBubbleColor, //sending 
+                },
+                left: {
+                    backgroundColor: leftBubbleColor, //other persons msg
+                },}}
+                textStyle={{ // sets txt color in bubble
+                right: { 
+                    color: '#000000',
+                },
+                left: {
+                    color: '#000000',
+                }
+                }}
+            >  
+                  
+                      {/* Render images */}
+                      {currentMessage.image && (
+                          <View style={{ padding: 10 }}>
+                              <Image
+                                  source={{ uri: currentMessage.image }}
+                                  style={[styles.image]}
+                              />
+                          </View>
+                      )}
+          
+                      {/* Render location map */}
+                      {currentMessage.location && currentMessage.location.latitude && (
+                          <MapView
+                              region={{
+                                  latitude: currentMessage.location.latitude,
+                                  longitude: currentMessage.location.longitude,
+                                  latitudeDelta: 0.0922,
+                                  longitudeDelta: 0.0421,
+                              }}
+                              style={{ width: 150, height: 100 }}
+                          />
+                      )}
+                  </Bubble>
+              );
+          };
+          
 
-        return (
+        /*return (
             <Bubble
               {...props}
               wrapperStyle={{
@@ -263,7 +475,7 @@ const onSend = (newMessages) => {
                 )}
             </Bubble>
         );
-    };
+    };*/
 
     const renderTime = (props) => {
         return (
