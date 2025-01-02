@@ -8,10 +8,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { image, setImage } from './Chat'
 
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage,/* setSelectedLocation */}) => {
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, name, setImage}) => {
     const actionSheet = useActionSheet();
     const { showActionSheetWithOptions } = useActionSheet();
-    // const [image, setImage] = useState(null);
+
 
     const uploadAndSendImage = async (imageUri) => {
         console.log(imageUri)
@@ -38,7 +38,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                     text: "",
                     user: {
                         _id: userID,
-                        name: "userName",
+                        name: name,
                     },
                     image: downloadUrl, // Assign the image URL
                 },
@@ -52,7 +52,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
         switch (index) {
             case 0: // Pick image from library
                 const result = await ImagePicker.launchImageLibraryAsync(
-                    // mediaTypes: ImagePicker.MediaType.Images,
+                    
                 );
                 console.log(result)
                 if (!result.canceled) {
@@ -60,16 +60,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                 }
                 break;
 
-            // case 1: // Take photo
-            //     console.log("dummy")
-            //     const cameraResult =  await ImagePicker.launchCameraAsync([]
-            //         //mediaTypes: ImagePicker.MediaType.Images,
-            //     );
-            //     console.log(cameraResult)
-            //     if (!cameraResult.canceled) {
-            //         uploadAndSendImage(cameraResult.assets[0].uri);
-            //     }
-            //     break;
+
 
             case 1: // take photo
                 console.log("opening camera...");
@@ -93,6 +84,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                     console.error("error accessing camera:", error);
                     Alert.alert("an error occurred while accessing the camera")
                 }
+                break;
 
 
 
@@ -102,12 +94,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                     const location = await Location.getCurrentPositionAsync({});
                     console.log("Location:", location);
 
-                    // onSend([
-                    //     {
-                    //         _id: uuidv4()
-                    //     }
-                    // ])
-
+                  
                      onSend([
                         {
                             _id: uuidv4(),
@@ -115,7 +102,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                             text: "",
                             user: {
                                 _id: userID,
-                                name: "userName",
+                                name: name,
                             },
                             location: {
                                 latitude: location.coords.latitude,
@@ -124,11 +111,9 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                         },
                     ]);
                 }
-                console.log("bye")
                 break;
 
             default:
-                console.log("3")
                 break;
         }
     };
@@ -146,159 +131,6 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
     );
 }
 
-    
-    /*const getLocation = async () => {
-        let permissions = await Location.requestForegroundPermissionsAsync();
-        if (permissions?.granted) {
-            const location = await Location.getCurrentPositionAsync({});
-            if(location) {
-                console.log('location:', location);
-               /* setSelectedLocation({
-                    longitude: location.coords.longitude,
-                    latitude: location.coords.latitude,
-                }); */ 
-                /*onSend({
-                    _id: uuidv4(),
-                    text: '',
-                    createdAt: new Date(),
-                    user: { _id: userID },
-                    location: {
-                        longitude: location.coords.longitude,
-                        latitude: location.coords.latitude,
-                    },
-                });*//*
-                onSend([
-                    {
-                        _id: `${userID}-${new Date().getTime()}`,
-                        text: '', // No text since it's an image
-                        createdAt: new Date(),
-                        user: { _id: userID },
-                        image: downloadURL, // Image from Firebase
-                    },
-                ]);
-                
-            } else Alert.alert('error occurred while fetching location');
-        }else Alert.alert('permissions have not been granted');
-    }
-
-    const generateReference = (uri) => {
-        const timeStamp = (new Date()).getTime();
-        const imageName = uri.split("/")[uri.split("/").length - 1];
-        return `${userID}-${timeStamp}-${imageName}`; 
-    }*/
-
-    /* old const uploadAndSendImage = async (imageURI) => {
-        const uniqueRefString = generateReference(imageURI);
-        const newUploadRef = ref(storage, uniqueRefString);
-        const response = await fetch(imageURI);
-        const blob = await response.blob();
-
-        uploadBytes(newUploadRef, blob).then(async (snapshot) => {
-            const imageURL = await getDownloadURL(snapshot.ref)
-
-            const messageId = uuidv4();
-
-            onSend({ 
-                _id: messageId,
-                image: imageURL,
-                createdAt: new Date(),
-                text: '',
-                user: { _id: userID },
-                
-             });
-        });
-    }; */
-
-    /*const uploadAndSendImage = async (imageURI) => {
-        if (!imageURI) {
-            console.warn('No image to upload');
-            return;
-        }
-    
-        const uniqueName = `${userID}/${new Date().getTime()}.jpg`;
-        const imageRef = ref(storage, uniqueName);
-    
-        try {
-            const response = await fetch(imageURI);
-            const blob = await response.blob();
-            const snapshot = await uploadBytes(imageRef, blob);
-    
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            console.log('Image uploaded:', downloadURL);
-    
-            // Send the image message via onSend
-            onSend([
-                {
-                    _id: uniqueName,
-                    text: '',
-                    createdAt: new Date(),
-                    user: { _id: userID },
-                    image: downloadURL,
-                },
-            ]);
-        } catch (error) {
-            console.error('Error uploading and sending image:', error);
-        }
-    };
-    
-
-   
-
-    const pickImage = async () => {
-        let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-        if(permissions?.granted){
-            let result = await ImagePicker.launchImageLibraryAsync();
-            if(!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-            else Alert.alert("permissions haven't been granted");
-        }
-
-    };
-
-    const takePhoto = async () => {
-        let permissions = await ImagePicker.requestCameraPermissionsAsync();
-
-        if(permissions?.granted) {
-            let result = await ImagePicker.launchCameraAsync();
-            if(!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-            else Alert.alert("permissions haven't been granted");
-        }
-
-    };
-    
-
-    const onActionPress = () => {
-        const options = ['choose from library', 'take picture', 'send location', 'cancel'];
-        const cancelButtonIndex = options.length - 1;
-        actionSheet.showActionSheetWithOptions(
-            {
-                options,
-                cancelButtonIndex,
-            },
-            async (buttonIndex) => {
-                switch (buttonIndex) {
-                  case 0:
-                    pickImage();
-                    return;
-                  case 1: 
-                    takePhoto();
-                    return;
-                  case 2: 
-                    getLocation();
-                  default:
-                }
-            },
-        );
-    };
-
-    return (
-        <TouchableOpacity style={styles.container} accessible={true} accessibilityLabel='more options' accessibilityRole='button' accessibilityHint='options for sending images or location' onPress={onActionPress}>
-          <View style={[styles.wrapper, wrapperStyle]}>
-             <Text style={[styles.iconText, iconTextStyle]}>+</Text>
-          </View>
-        </TouchableOpacity>
-    );
-}*/
 
 const styles = StyleSheet.create({
     container: {
