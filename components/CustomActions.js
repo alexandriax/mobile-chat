@@ -5,11 +5,13 @@ import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { image, setImage } from './Chat'
 
 
 const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, setImage,/* setSelectedLocation */}) => {
     const actionSheet = useActionSheet();
     const { showActionSheetWithOptions } = useActionSheet();
+    // const [image, setImage] = useState(null);
 
     const uploadAndSendImage = async (imageUri) => {
         console.log(imageUri)
@@ -58,20 +60,45 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, s
                 }
                 break;
 
-            case 1: // Take photo
-                const cameraResult = await ImagePicker.launchCameraAsync(
-                    //mediaTypes: ImagePicker.MediaType.Images,
-                );
-                console.log(cameraResult)
-                if (!cameraResult.canceled) {
-                    uploadAndSendImage(cameraResult.assets[0].uri);
+            // case 1: // Take photo
+            //     console.log("dummy")
+            //     const cameraResult =  await ImagePicker.launchCameraAsync([]
+            //         //mediaTypes: ImagePicker.MediaType.Images,
+            //     );
+            //     console.log(cameraResult)
+            //     if (!cameraResult.canceled) {
+            //         uploadAndSendImage(cameraResult.assets[0].uri);
+            //     }
+            //     break;
+
+            case 1: // take photo
+                console.log("opening camera...");
+
+                let { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+                if (cameraStatus !== "granted") {
+                    Alert.alert("camera permissions are required to take photos");
+                    return;
                 }
-                break;
+                try {
+                    const cameraResult = await ImagePicker.launchCameraAsync({
+                        
+                    });
+
+                    if(!cameraResult.canceled) {
+                        uploadAndSendImage(cameraResult.assets[0].uri);
+                    } else {
+                        console.log("canceled by user")
+                    }
+                } catch (error) {
+                    console.error("error accessing camera:", error);
+                    Alert.alert("an error occurred while accessing the camera")
+                }
+
 
 
             case 2: // Send location
-                let { status } = await Location.requestForegroundPermissionsAsync();
-                if (status === "granted") {
+                let { status:locationStatus } = await Location.requestForegroundPermissionsAsync();
+                if (locationStatus === "granted") {
                     const location = await Location.getCurrentPositionAsync({});
                     console.log("Location:", location);
 
